@@ -23,6 +23,13 @@
       <scope>system</scope>
       <systemPath>${basedir}\lib\spigot-1.14.2.jar</systemPath>
     </dependency>
+    <dependency>
+      <groupId>com.sample</groupId>
+      <artifactId>sample</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}\lib\ActionBarAPI-1.5.4.jar</systemPath>
+    </dependency>
   </dependencies>
 
   <build>
