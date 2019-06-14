@@ -1,0 +1,10 @@
+name: tps
+main: com.imyvm.tpsx.Tpsx
+version: 0.0.1-SNAPSHOT
+description: Get server TPS and MSPT
+author: YanWQmonad
+
+commands:
+  tpsx:
+    description: Get server TPS and MSPT
+    usage: /<command>
