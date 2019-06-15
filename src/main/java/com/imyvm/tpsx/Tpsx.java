@@ -37,7 +37,7 @@ public final class Tpsx extends JavaPlugin {
         if (cmd.getName().equalsIgnoreCase("tpsx")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage(getTpsInfo());
-                return false;
+                return true;
             }
 
             Player player = (Player) sender;
