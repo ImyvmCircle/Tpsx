@@ -8,18 +8,59 @@ cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
+    - $HOME/spigot_cache
+    - $HOME/.m2
 
 before_install:
-  - mkdir lib
+  - mkdir -p lib
   - |
-    mkdir build_spigot &&
-    cd build_spigot &&
-    wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar &&
-    echo 'Building spigot, please wait...' &&
-    java -jar BuildTools.jar --rev 1.14.2 > /dev/null 2> /dev/null &&
-    cp spigot-1.14.2.jar ../lib &&
-    cd .. &&
-    rm -rf build_spigot
+    if [ ! -f $HOME/spigot_cache/spigot-1.14.2.jar ]; then
+      rm -rf $HOME/spigot_cache
+      mkdir $HOME/spigot_cache build_spigot
+      pushd build_spigot
+      wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+      echo 'Building spigot, please wait...'
+      java -jar BuildTools.jar --rev 1.14.2 > /dev/null 2> /dev/null
+      cp spigot-1.14.2.jar ../lib
+      cp spigot-1.14.2.jar $HOME/spigot_cache
+      popd
+      rm -rf build_spigot
+    else
+      cp $HOME/spigot_cache/spigot-1.14.2.jar lib
+    fi
 
 script:
   - true
+
+after_script:
+  - sed -i "/plugins {/a\    id \'maven\'" build.gradle
+  - |
+    cat << EOF >> build.gradle
+      def artifactId = 'tpsx'
+      uploadArchives {
+          repositories {
+              mavenDeployer {
+                  repository(url: "file://$HOME/maven-repo/repository")
+              }
+          }
+      }
+  - git clone https://YanWQ-monad:$YANWQMONAD_GITHUB_TOKEN@github.com/ImyvmCircle/maven-repo.git $HOME/maven-repo
+  - ./gradlew uploadArchives
+  - |
+    version=$(gradle properties -q | grep "version:" | awk '{print $2}') &&
+    pushd $HOME/maven-repo &&
+    git add . &&
+    git commit -m "tpsx $version" &&
+    git push origin master &&
+    popd
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "JCtFnwVx8B7l/yLBYX+ANHG4SQ/ky/LVNgB4j5bfXPN0CeitEOsEpZzWUoiXK8mNeZkQvtXGqLfisd7T2PF5/2saD6pMFTXu3hC/dvAy03kWpP1BfXGQICagmtg0JSnBvqP4CTd83yQmf9Z/UP2B2UerPySUW1AD80/fcBRJuiFnlaVRsxqWvWANlebZvOC1Kr+LQK68c+R5uAn8oB4RPgO1e8UcwD0L8pLc6P9T+7y///idnBHZjnChCSS6LA53KEGkBuwx+C1b9OHHfQqYiDyijUmjWGAixQ8h4N7C91IZarlAFMsHuAF60oo/5UT23uFQb5VbN4LXaiFqv2f8wlibE9/7mc6BOZlqgkrZEsseEEqqBghBdGj3YTtwPqHrwY3eYPOfsBqVUx9TNvub/FmgaIRv99Yy7hiOtNGwWR8SMES9U4Ko99236oBsaU/lpZiBT7mxR5AhzIFO6gO+lXZgFkqTM/ucxZMjqeLo/iCEZLt3TupJqWrI0vgVRoi2wgx8CiZgXWN/Je3LHrxWDlVt9YO4UaoBMRvD8KK/ps8VXyMdL5AtKD7jKJJkI7VzBJw5wO4hSBCWjc4fg6+f1QfKUL2fqb6jyc4iYGjV+KAKZR5KGGeVDdUowTb3BvY9KVPUS7RMoBKJRnQ91n4NyoeRKDUdRVgumfq6YYF6ZfM="
+  file: build/libs/*.jar
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: ImyvmCircle/Tpsx
+    tags: true
