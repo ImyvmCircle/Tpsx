@@ -12,19 +12,7 @@
 *.rar
 hs_err_pid*
 
-# Maven gitignore
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
-
-# Eclipse gitignore
+# Editor gitignore
 .metadata
 bin/
 tmp/
@@ -52,7 +40,17 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
+/.vscode
+.project
+.classpath
+.project
+/build
++/.idea/
++.idea/
 
-# JetBrains gitignore
-/.idea/
-.idea/
+# Gradle gitignore
+/.gradle
+/build/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
