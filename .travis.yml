@@ -15,7 +15,8 @@ before_install:
     mkdir build_spigot &&
     cd build_spigot &&
     wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar &&
-    java -jar BuildTools.jar --rev 1.14.2 &&
+    echo 'Building spigot, please wait...' &&
+    java -jar BuildTools.jar --rev 1.14.2 > /dev/null 2> /dev/null &&
     cp spigot-1.14.2.jar ../lib &&
     cd .. &&
     rm -rf build_spigot
