@@ -11,23 +11,25 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.minecraft.server.v1_14_R1.MathHelper;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 
-public final class Tpsx extends JavaPlugin implements Listener {
+public final class Tpsx extends JavaPlugin {
     @SuppressWarnings("deprecation")
     static final MinecraftServer server = MinecraftServer.getServer();
     static final NumberFormat formatter = new DecimalFormat("#0.00");
-    static final Map<UUID, Boolean> map = new HashMap<>();
+    static final Map<UUID, Player> players = new HashMap<>();
 
     @Override
     public void onEnable() {
-        Bukkit.getPluginManager().registerEvents(this, this);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+        	@Override
+        	public void run() {
+        		sendTpsInfo();
+        	}
+        }, 0, 20);
     }
 
     @Override
@@ -39,24 +41,24 @@ public final class Tpsx extends JavaPlugin implements Listener {
             }
 
             Player player = (Player) sender;
-            if (map.containsKey(player.getUniqueId())) {
-                map.remove(player.getUniqueId());
+            if (players.containsKey(player.getUniqueId())) {
+            	players.remove(player.getUniqueId());
+            	ActionBarAPI.sendActionBar(player, "", 0);
                 sender.sendMessage("tpsx off");
             }
             else {
-            	map.put(player.getUniqueId(), true);
+            	players.put(player.getUniqueId(), player);
             	sender.sendMessage("tpsx on");
             }
             return true;
         }
         return false;
     }
-
-    @EventHandler
-    public void playermove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        if (map.get(player.getUniqueId())) {
-            ActionBarAPI.sendActionBar(player, getTpsInfo(), 100);
+    
+    public void sendTpsInfo() {
+        String msg = getTpsInfo();
+        for (Player player : players.values()) {
+        	ActionBarAPI.sendActionBar(player, msg);
         }
     }
 
