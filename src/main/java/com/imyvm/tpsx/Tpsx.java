@@ -20,53 +20,54 @@ import net.minecraft.server.v1_14_R1.MathHelper;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 
 public final class Tpsx extends JavaPlugin implements Listener {
-	@SuppressWarnings("deprecation")
-	static final MinecraftServer server = MinecraftServer.getServer();
-	static final NumberFormat formatter = new DecimalFormat("#0.00");
-	static final Map<UUID, Boolean> map = new HashMap<>();
+    @SuppressWarnings("deprecation")
+    static final MinecraftServer server = MinecraftServer.getServer();
+    static final NumberFormat formatter = new DecimalFormat("#0.00");
+    static final Map<UUID, Boolean> map = new HashMap<>();
 
-	@Override
+    @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
     }
 
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (cmd.getName().equalsIgnoreCase("tpsx")) {
-		    if (!(sender instanceof Player)){
-		        sender.sendMessage(getTpsinfo());
-		        return false;
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        if (cmd.getName().equalsIgnoreCase("tpsx")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage(getTpsInfo());
+                return false;
             }
-			Player player = (Player) sender;
-			if (map.containsKey(player.getUniqueId())){
-				map.remove(player.getUniqueId());
-				sender.sendMessage("tpsx off");
-				return true;
-			}
-			map.put(player.getUniqueId(), true);
-            sender.sendMessage("tpsx on");
-			// double mspt = MathHelper.average(server.lastTickLengths) * 1.0E-6D;
-			return true;
-		}
-		return false;
-	}
 
-    @EventHandler
-	public void playermove(PlayerMoveEvent event){
-	    Player player = event.getPlayer();
-	    if (!map.get(player.getUniqueId())){
-	        return;
+            Player player = (Player) sender;
+            if (map.containsKey(player.getUniqueId())) {
+                map.remove(player.getUniqueId());
+                sender.sendMessage("tpsx off");
+            }
+            else {
+            	map.put(player.getUniqueId(), true);
+            	sender.sendMessage("tpsx on");
+            }
+            return true;
         }
-        ActionBarAPI.sendActionBar(player,getTpsinfo(), 100);
+        return false;
     }
 
-	private String getTpsinfo(){
-		double mspt = MathHelper.a(server.f) * 1.0E-6D;
-		double tps = Math.min(1000.0 / mspt, 20.0);
+    @EventHandler
+    public void playermove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (map.get(player.getUniqueId())) {
+            ActionBarAPI.sendActionBar(player, getTpsInfo(), 100);
+        }
+    }
 
-		String mspt_color = mspt <= 40 ? "§a" : (mspt >= 60 ? "§c" : "§e");
-		String tps_color = tps < 20 ? "§c" : "§a";
+    private String getTpsInfo() {
+        // double mspt = MathHelper.average(server.lastTickLengths) * 1.0E-6D;
+        double mspt = MathHelper.a(server.f) * 1.0E-6D;
+        double tps = Math.min(1000.0 / mspt, 20.0);
 
-		return ("TPS: " + tps_color + formatter.format(tps) + "§r, MSPT: " + mspt_color + formatter.format(mspt) + "§r");
-	}
+        String mspt_color = mspt <= 40 ? "§a" : (mspt >= 60 ? "§c" : "§e");
+        String tps_color = tps < 20 ? "§c" : "§a";
+
+        return ("TPS: " + tps_color + formatter.format(tps) + "§r, MSPT: " + mspt_color + formatter.format(mspt) + "§r");
+    }
 }
