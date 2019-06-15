@@ -16,12 +16,16 @@ repositories {
     maven {
         url = 'http://repo.maven.apache.org/maven2'
     }
+
+    maven {
+        url = 'https://github.com/ImyvmCircle/maven-repo/raw/master/repository'
+    }
 }
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.14.2-R0.1-SNAPSHOT'
+    compileOnly 'com.connorlinfoot:actionbarapi:1.5.4'
     compileOnly files('lib/spigot-1.14.2.jar')
-    compileOnly files('lib/ActionBarAPI-1.5.4.jar')
 }
 
 group = 'com.imyvm'
