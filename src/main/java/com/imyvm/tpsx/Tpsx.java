@@ -44,11 +44,11 @@ public final class Tpsx extends JavaPlugin {
             if (players.containsKey(player.getUniqueId())) {
             	players.remove(player.getUniqueId());
             	ActionBarAPI.sendActionBar(player, "", 0);
-                sender.sendMessage("tpsx off");
+                sender.sendMessage("§eTps §4off");
             }
             else {
             	players.put(player.getUniqueId(), player);
-            	sender.sendMessage("tpsx on");
+            	sender.sendMessage("§eTps §aon");
             }
             return true;
         }
