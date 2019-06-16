@@ -22,10 +22,15 @@ repositories {
     }
 }
 
+ext {
+    minecraft_version = '1.14.2'
+    spigot_version = '1.14.2-R0.1-SNAPSHOT'
+}
+
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.14.2-R0.1-SNAPSHOT'
+    compileOnly "org.spigotmc:spigot-api:${spigot_version}"
     compileOnly 'com.connorlinfoot:actionbarapi:1.5.4'
-    compileOnly files('lib/spigot-1.14.2.jar')
+    compileOnly files("lib/spigot-${minecraft_version}.jar")
 }
 
 group = 'com.imyvm'

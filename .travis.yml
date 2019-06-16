@@ -14,19 +14,20 @@ cache:
 before_install:
   - mkdir -p lib
   - |
-    if [ ! -f $HOME/spigot_cache/spigot-1.14.2.jar ]; then
+    mc_version=$(cat build.gradle | gawk "match(\$0, /minecraft_version = '([0-9\.]+)'$/, a) { print a[1] }")
+    if [ ! -f $HOME/spigot_cache/spigot-$mc_version.jar ]; then
       rm -rf $HOME/spigot_cache
       mkdir $HOME/spigot_cache build_spigot
       pushd build_spigot
       wget https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
       echo 'Building spigot, please wait...'
-      java -jar BuildTools.jar --rev 1.14.2 > /dev/null 2> /dev/null
-      cp spigot-1.14.2.jar ../lib
-      cp spigot-1.14.2.jar $HOME/spigot_cache
+      java -jar BuildTools.jar --rev $mc_version > /dev/null 2> /dev/null
+      cp spigot-$mc_version.jar ../lib
+      cp spigot-$mc_version.jar $HOME/spigot_cache
       popd
       rm -rf build_spigot
     else
-      cp $HOME/spigot_cache/spigot-1.14.2.jar lib
+      cp $HOME/spigot_cache/spigot-$mc_version.jar lib
     fi
 
 stages:
