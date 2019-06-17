@@ -22,15 +22,24 @@ repositories {
     }
 }
 
+configurations {
+    testCompile.extendsFrom compileOnly
+}
+
 ext {
     minecraft_version = '1.14.2'
     spigot_version = '1.14.2-R0.1-SNAPSHOT'
+    powermock_version = '2.0.2'
 }
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:${spigot_version}"
     compileOnly 'com.connorlinfoot:actionbarapi:1.5.4'
     compileOnly files("lib/spigot-${minecraft_version}.jar")
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:2.+'
+    testCompile "org.powermock:powermock-module-junit4:$powermock_version"
+    testCompile "org.powermock:powermock-api-mockito2:$powermock_version"
 }
 
 group = 'com.imyvm'

@@ -16,7 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.minecraft.server.v1_14_R1.MathHelper;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 
-public final class Tpsx extends JavaPlugin {
+public class Tpsx extends JavaPlugin {
     @SuppressWarnings("deprecation")
     static final MinecraftServer server = MinecraftServer.getServer();
     static final NumberFormat formatter = new DecimalFormat("#0.00");

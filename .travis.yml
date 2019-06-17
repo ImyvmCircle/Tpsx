@@ -31,14 +31,18 @@ before_install:
     fi
 
 stages:
+  - compile
   - test
   - name: deploy
     if: tag IS present AND type = push
 
 jobs:
   include:
-    - stage: test
+    - stage: compile
       script: skip
+
+    - stage: test
+      script: gradle test
 
     - stage: deploy
       script:
