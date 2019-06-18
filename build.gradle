@@ -33,7 +33,6 @@ ext {
 }
 
 dependencies {
-    compileOnly "org.spigotmc:spigot-api:${spigot_version}"
     compileOnly 'com.connorlinfoot:actionbarapi:1.5.4'
     compileOnly files("lib/spigot-${minecraft_version}.jar")
     testCompile 'junit:junit:4.12'

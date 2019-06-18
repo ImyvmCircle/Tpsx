@@ -9,7 +9,6 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
     - $HOME/spigot_cache
-    - $HOME/.m2
 
 before_install:
   - mkdir -p lib
