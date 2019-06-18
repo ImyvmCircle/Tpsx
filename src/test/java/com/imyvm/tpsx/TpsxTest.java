@@ -1,28 +1,26 @@
 package com.imyvm.tpsx;
 
 import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import sun.misc.Unsafe;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.Test;
-import org.mockito.AdditionalAnswers;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import com.connorlinfoot.actionbarapi.ActionBarAPI;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
@@ -34,8 +32,11 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ActionBarAPI.class, MinecraftServer.class, Bukkit.class})
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 class TpsxTest {
-    private static MinecraftServer mockedServer = mock(MinecraftServer.class);
+    private static MinecraftServer mockedServer;
+    private static Unsafe unsafe;
+    private static Field serverMsptArrayField;
     private BukkitScheduler mockedScheduler;
     private Command mockedCommand;
     private Timer timer;
@@ -44,7 +45,23 @@ class TpsxTest {
     public TpsxTest() {}
 
     @BeforeClass
-    static public void setUpClass() {
+    static public void setUpClass() throws Exception {
+        Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
+        unsafeField.setAccessible(true);
+        unsafe = (Unsafe) unsafeField.get(null);
+
+        serverMsptArrayField = null;
+        for (Field field : MinecraftServer.class.getDeclaredFields()) {
+            if (field.getName().equals("f")) {
+                serverMsptArrayField = field;
+                break;
+            }
+        }
+        if (serverMsptArrayField == null) {
+            fail("Could not found server MSPT array field");
+        }
+
+        mockedServer = mock(MinecraftServer.class);
         setMsptData(mockedServer, 0);
     }
 
@@ -57,7 +74,10 @@ class TpsxTest {
 
         setMsptData(mockedServer, 0);
 
+        mockedCommand = mock(Command.class);
         mockedScheduler = mock(BukkitScheduler.class);
+        timer = new Timer();
+
         doAnswer(new Answer<Integer>() {
             @Override
             public Integer answer(InvocationOnMock invocation) {
@@ -81,11 +101,7 @@ class TpsxTest {
 
         when(Bukkit.getScheduler()).thenReturn(mockedScheduler);
         when(MinecraftServer.getServer()).thenReturn(mockedServer);
-
-        mockedCommand = mock(Command.class);
         when(mockedCommand.getName()).thenReturn("tpsx");
-
-        timer = new Timer();
 
         plugin = mock(Tpsx.class);
         doCallRealMethod().when(plugin).onEnable();
@@ -106,7 +122,7 @@ class TpsxTest {
         for (int i = 0; i < array.length; i++) {
             array[i] = mspt * 1000000;
         }
-        Whitebox.setInternalState(server, "f", array);
+        unsafe.putObject(server, unsafe.objectFieldOffset(serverMsptArrayField), array);
     }
 
     @Test
@@ -141,17 +157,9 @@ class TpsxTest {
             setMsptData(mockedServer, 80);
             assertEquals(method.invoke(plugin), "TPS: §c12.50§r, MSPT: §c80.00§r");
         }
-        catch (NoSuchMethodException e) {
+        catch (Exception e) {
             e.printStackTrace();
-            fail();
-        }
-        catch (IllegalAccessException e) {
-            e.printStackTrace();
-            fail();
-        }
-        catch (InvocationTargetException e) {
-            e.printStackTrace();
-            fail();
+            fail("Fail with an exception");
         }
     }
 
