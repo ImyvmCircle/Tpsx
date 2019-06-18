@@ -125,6 +125,10 @@ class TpsxTest {
         unsafe.putObject(server, unsafe.objectFieldOffset(serverMsptArrayField), array);
     }
 
+    private static String removeColorCode(String msg) {
+        return msg.replaceAll("§.", "");
+    }
+
     @Test
     public void testMainFunction() {
         Player mockedPlayer = mock(Player.class);
@@ -136,7 +140,7 @@ class TpsxTest {
         verify(mockedPlayer, times(1)).sendMessage(eq("tpsx on"));
 
         PowerMockito.verifyStatic(ActionBarAPI.class, timeout(1200 / 10).atLeast(1));
-        ActionBarAPI.sendActionBar(eq(mockedPlayer), eq("TPS: §a20.00§r, MSPT: §a10.00§r"));
+        ActionBarAPI.sendActionBar(eq(mockedPlayer), argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 10.00")));
     }
 
     @Test
@@ -169,7 +173,7 @@ class TpsxTest {
 
         setMsptData(mockedServer, 10);
         plugin.onCommand(mockedSender, mockedCommand, "", new String[0]);
-        verify(mockedSender, times(1)).sendMessage(eq("TPS: §a20.00§r, MSPT: §a10.00§r"));
+        verify(mockedSender, times(1)).sendMessage(argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 10.00")));
     }
 
     @Test
@@ -183,11 +187,12 @@ class TpsxTest {
         verify(mockedPlayer, times(1)).sendMessage(eq("tpsx on"));
 
         PowerMockito.verifyStatic(ActionBarAPI.class, timeout(1200 / 10).atLeast(1));
-        ActionBarAPI.sendActionBar(eq(mockedPlayer), eq("TPS: §a20.00§r, MSPT: §a10.00§r"));
+        ActionBarAPI.sendActionBar(eq(mockedPlayer), argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 10.00")));
 
         plugin.onCommand(mockedPlayer, mockedCommand, "", new String[0]);
         verify(mockedPlayer, times(1)).sendMessage(eq("tpsx off"));
-        PowerMockito.verifyStatic(ActionBarAPI.class, after(2400 / 10).atMost(2));
-        ActionBarAPI.sendActionBar(eq(mockedPlayer), anyString());
+        setMsptData(mockedServer, 20);
+        PowerMockito.verifyStatic(ActionBarAPI.class, after(2400 / 10).never());
+        ActionBarAPI.sendActionBar(eq(mockedPlayer), argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 20.00")));
     }
 }
