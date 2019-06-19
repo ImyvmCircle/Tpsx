@@ -2,25 +2,34 @@ package com.imyvm.tpsx;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import com.google.common.collect.Iterables;
 
 import com.connorlinfoot.actionbarapi.ActionBarAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import net.minecraft.server.v1_14_R1.IChatBaseComponent;
 import net.minecraft.server.v1_14_R1.MathHelper;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
+import net.minecraft.server.v1_14_R1.PacketPlayOutPlayerListHeaderFooter;
+import net.minecraft.server.v1_14_R1.PlayerConnection;
 
 public class Tpsx extends JavaPlugin {
+    private static List<String> allowToggle = Arrays.asList("bar", "tab", "off");
     @SuppressWarnings("deprecation")
-    static final MinecraftServer server = MinecraftServer.getServer();
-    static final NumberFormat formatter = new DecimalFormat("#0.00");
-    static final Map<UUID, Player> players = new HashMap<>();
+    private static MinecraftServer server = MinecraftServer.getServer();
+    private static NumberFormat formatter = new DecimalFormat("#0.00");
+    private Map<UUID, Player> barPlayers = new HashMap<>();
+    private Map<UUID, Player> tabPlayers = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -40,26 +49,62 @@ public class Tpsx extends JavaPlugin {
                 return true;
             }
 
+            if (args.length != 2 || !args[0].equals("toggle") || !allowToggle.stream().anyMatch(str -> str.equals(args[1]))) {
+                return false;
+            }
+
             Player player = (Player) sender;
-            if (players.containsKey(player.getUniqueId())) {
-            	players.remove(player.getUniqueId());
-            	ActionBarAPI.sendActionBar(player, "", 0);
-                sender.sendMessage("tpsx off");
-            }
-            else {
-            	players.put(player.getUniqueId(), player);
-            	sender.sendMessage("tpsx on");
-            }
+            switchTo(player, args[1]);
+
             return true;
         }
         return false;
     }
-    
-    public void sendTpsInfo() {
-        String msg = getTpsInfo();
-        for (Player player : players.values()) {
-        	ActionBarAPI.sendActionBar(player, msg);
+
+    private void switchTo(Player player, String target) {
+        barPlayers.remove(player.getUniqueId());
+        tabPlayers.remove(player.getUniqueId());
+
+        setPlayerListFooter(player, "");
+        ActionBarAPI.sendActionBar(player, "");
+
+        switch (target) {
+            case "bar":
+                barPlayers.put(player.getUniqueId(), player);
+                break;
+
+            case "tab":
+                tabPlayers.put(player.getUniqueId(), player);
+                break;
         }
+    }
+
+    private void updatePermission() {
+        for (Player player : Iterables.concat(barPlayers.values(), tabPlayers.values())) {
+            if (!player.hasPermission("tpsx.view")) {
+                switchTo(player, "off");
+            }
+        }
+    }
+
+    private static void setPlayerListFooter(Player player, String footer) {
+        CraftPlayer craftPlayer = (CraftPlayer) player;
+        PlayerConnection connection = craftPlayer.getHandle().playerConnection;
+
+        PacketPlayOutPlayerListHeaderFooter packet = new PacketPlayOutPlayerListHeaderFooter();
+
+        packet.header = IChatBaseComponent.ChatSerializer.a("{\"text\": \"\"}");
+        packet.footer = IChatBaseComponent.ChatSerializer.a("{\"text\": \"" + footer + "\"}");
+
+        connection.sendPacket(packet);
+    }
+
+    public void sendTpsInfo() {
+        updatePermission();
+
+        String msg = getTpsInfo();
+        barPlayers.values().forEach(player -> ActionBarAPI.sendActionBar(player, msg));
+        tabPlayers.values().forEach(player -> setPlayerListFooter(player, msg));
     }
 
     private String getTpsInfo() {

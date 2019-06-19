@@ -1,10 +1,23 @@
 name: tps
 main: com.imyvm.tpsx.Tpsx
-version: 0.1.0
+version: 0.2.0-SNAPSHOT
 description: Get server TPS and MSPT
 author: YanWQmonad
 
 commands:
   tpsx:
     description: Get server TPS and MSPT
-    usage: /<command>
+    permission: tpsx.view
+    usage: |
+      §a/<command> toggle bar§r - show TPS information in action bar
+      §a/<command> toggle tab§r - show TPS information in tab list
+      §a/<command> toggle off§r - close TPS show
+
+permissions:
+  tpsx.*:
+    description: Gives assess to all tpsx command
+    children:
+      tpsx.view: true
+  tpsx.view:
+    description: Allows you to get server TPS and MSPT info
+    default: op
