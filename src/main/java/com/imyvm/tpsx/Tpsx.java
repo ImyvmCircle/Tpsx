@@ -28,7 +28,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutPlayerListHeaderFooter;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 
 public class Tpsx extends JavaPlugin implements TabExecutor {
-    private static List<String> allowToggle = Arrays.asList("bar", "tab", "off");
+    private static List<String> allowToggle = Arrays.asList("bar", "tab", "disable");
     @SuppressWarnings("deprecation")
     private static MinecraftServer server = MinecraftServer.getServer();
     private static NumberFormat formatter = new DecimalFormat("#0.00");
@@ -37,6 +37,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
 
     @Override
     public void onEnable() {
+        this.saveDefaultConfig();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
         	@Override
         	public void run() {
@@ -49,19 +50,14 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("tpsx")) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage(getTpsInfo());
-                return true;
+            if (args.length == 2 && args[0].equals("toggle")) {
+                return subCommandToggle(sender, args[1]);
+            }
+            if (args.length == 1 && args[0].equals("reload")) {
+                return subCommandReload(sender);
             }
 
-            if (args.length != 2 || !args[0].equals("toggle") || !allowToggle.stream().anyMatch(str -> str.equals(args[1]))) {
-                return false;
-            }
-
-            Player player = (Player) sender;
-            switchTo(player, args[1]);
-
-            return true;
+            return false;
         }
         return false;
     }
@@ -72,12 +68,41 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
 
         if (args.length == 1) {
             result.addAll(filterStartsWith(Arrays.asList("toggle"), args[0]));
+            if ((sender instanceof Player) && sender.hasPermission("tpsx.manage") && "reload".startsWith(args[0])) {
+                result.add("reload");
+            }
         }
         else if (args.length == 2 && args[0].equals("toggle")) {
             result.addAll(filterStartsWith(allowToggle, args[1]));
         }
 
         return result;
+    }
+
+    private boolean subCommandToggle(CommandSender sender, String target) {
+        if (!(sender instanceof Player)) {
+            sendMessageFromConfig(sender, "toggle.message.from_server");
+            return true;
+        }
+
+        if (allowToggle.stream().noneMatch(str -> str.equals(target))) {
+            return false;
+        }
+        switchTo((Player)sender, target);
+
+        return true;
+    }
+
+    private boolean subCommandReload(CommandSender sender) {
+        if ((sender instanceof Player) && !sender.hasPermission("tpsx.manage")) {
+            sendMessageFromConfig(sender, "reload.message.no_permission");
+            return true;
+        }
+
+        this.reloadConfig();
+        sendMessageFromConfig(sender, "reload.message.success");
+
+        return true;
     }
 
     private void switchTo(Player player, String target) {
@@ -97,29 +122,13 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
                 break;
         }
 
-        sendSwitchMessage(player, target);
-    }
-
-    private void sendSwitchMessage(Player player, String target) {
-        switch (target) {
-            case "bar":
-                player.sendMessage("[Tpsx] switch to the action bar mode");
-                break;
-
-            case "tab":
-                player.sendMessage("[Tpsx] switch to the tab list mode");
-                break;
-
-            case "off":
-                player.sendMessage("[Tpsx] turn off TPS display");
-                break;
-        }
+        sendMessageFromConfig(player, "toggle.message." + target);
     }
 
     private void updatePermission() {
         for (Player player : Iterables.concat(barPlayers.values(), tabPlayers.values())) {
             if (!player.hasPermission("tpsx.view")) {
-                switchTo(player, "off");
+                switchTo(player, "disable");
             }
         }
     }
@@ -138,6 +147,12 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         packet.footer = IChatBaseComponent.ChatSerializer.a("{\"text\": \"" + footer + "\"}");
 
         connection.sendPacket(packet);
+    }
+
+    private void sendMessageFromConfig(CommandSender sender, String path) {
+        String message = this.getConfig().getString(path);
+        if (message != null)
+            sender.sendMessage(message);
     }
 
     public void sendTpsInfo() {

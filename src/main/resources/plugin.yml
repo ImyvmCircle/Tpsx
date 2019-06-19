@@ -11,13 +11,17 @@ commands:
     usage: |
       §a/<command> toggle bar§r - show TPS information in action bar
       §a/<command> toggle tab§r - show TPS information in tab list
-      §a/<command> toggle off§r - close TPS show
+      §a/<command> toggle disable§r - close TPS show
 
 permissions:
   tpsx.*:
     description: Gives assess to all tpsx command
     children:
       tpsx.view: true
+      tpsx.manage: true
   tpsx.view:
     description: Allows you to get server TPS and MSPT info
+    default: op
+  tpsx.manage:
+    description: Allows you to reload server config
     default: op

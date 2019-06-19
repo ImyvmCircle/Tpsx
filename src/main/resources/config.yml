@@ -1,0 +1,11 @@
+toggle:
+  message:
+    bar: "[Tpsx] §eswitch to the action bar mode§r"
+    tab: "[Tpsx] §eswitch to the tab list mode§r"
+    disable: "[Tpsx] §eturn off TPS display§r"
+    from_server: "toggle is only available to players"
+
+reload:
+  message:
+    success: "Config reload successfully"
+    no_permission: "§cYou do not have permission to do that§r"
