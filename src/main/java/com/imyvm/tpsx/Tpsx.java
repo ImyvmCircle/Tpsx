@@ -3,16 +3,20 @@ package com.imyvm.tpsx;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import com.google.common.collect.Iterables;
 
 import com.connorlinfoot.actionbarapi.ActionBarAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,7 +27,7 @@ import net.minecraft.server.v1_14_R1.MinecraftServer;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPlayerListHeaderFooter;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 
-public class Tpsx extends JavaPlugin {
+public class Tpsx extends JavaPlugin implements TabExecutor {
     private static List<String> allowToggle = Arrays.asList("bar", "tab", "off");
     @SuppressWarnings("deprecation")
     private static MinecraftServer server = MinecraftServer.getServer();
@@ -39,6 +43,7 @@ public class Tpsx extends JavaPlugin {
         		sendTpsInfo();
         	}
         }, 0, 20);
+        this.getCommand("tpsx").setTabCompleter(this);
     }
 
     @Override
@@ -59,6 +64,20 @@ public class Tpsx extends JavaPlugin {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+        List<String> result = new ArrayList<>();
+
+        if (args.length == 1) {
+            result.addAll(filterStartsWith(Arrays.asList("toggle"), args[0]));
+        }
+        else if (args.length == 2 && args[0].equals("toggle")) {
+            result.addAll(filterStartsWith(allowToggle, args[1]));
+        }
+
+        return result;
     }
 
     private void switchTo(Player player, String target) {
@@ -85,6 +104,10 @@ public class Tpsx extends JavaPlugin {
                 switchTo(player, "off");
             }
         }
+    }
+
+    private List<String> filterStartsWith(List<String> origin, String prefix) {
+        return origin.stream().filter(str -> str.startsWith(prefix)).collect(Collectors.toList());
     }
 
     private static void setPlayerListFooter(Player player, String footer) {
