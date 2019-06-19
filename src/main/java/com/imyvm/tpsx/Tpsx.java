@@ -96,6 +96,24 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
                 tabPlayers.put(player.getUniqueId(), player);
                 break;
         }
+
+        sendSwitchMessage(player, target);
+    }
+
+    private void sendSwitchMessage(Player player, String target) {
+        switch (target) {
+            case "bar":
+                player.sendMessage("[Tpsx] switch to the action bar mode");
+                break;
+
+            case "tab":
+                player.sendMessage("[Tpsx] switch to the tab list mode");
+                break;
+
+            case "off":
+                player.sendMessage("[Tpsx] turn off TPS display");
+                break;
+        }
     }
 
     private void updatePermission() {
