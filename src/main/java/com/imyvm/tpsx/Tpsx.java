@@ -19,6 +19,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.minecraft.server.v1_14_R1.IChatBaseComponent;
@@ -44,6 +47,15 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         		sendTpsInfo();
         	}
         }, 0, 20);
+
+        Bukkit.getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            public void onLeave(PlayerQuitEvent event) {
+                barPlayers.remove(event.getPlayer().getUniqueId());
+                tabPlayers.remove(event.getPlayer().getUniqueId());
+            }
+        }, this);
+
         this.getCommand("tpsx").setTabCompleter(this);
     }
 
