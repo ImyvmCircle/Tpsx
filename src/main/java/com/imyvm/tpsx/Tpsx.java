@@ -126,10 +126,14 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
     }
 
     private void updatePermission() {
+        List<Player> toRemove = new ArrayList<>();
         for (Player player : Iterables.concat(barPlayers.values(), tabPlayers.values())) {
             if (!player.hasPermission("tpsx.view")) {
-                switchTo(player, "disable");
+                toRemove.add(player);
             }
+        }
+        for (Player player : toRemove) {
+            switchTo(player, "disable");
         }
     }
 
