@@ -8,4 +8,3 @@ toggle:
 reload:
   message:
     success: "Config reload successfully"
-    no_permission: "§cYou do not have permission to do that§r"

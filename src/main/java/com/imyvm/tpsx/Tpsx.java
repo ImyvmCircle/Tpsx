@@ -107,7 +107,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
 
     private boolean subCommandReload(CommandSender sender) {
         if ((sender instanceof Player) && !sender.hasPermission("tpsx.manage")) {
-            sendMessageFromConfig(sender, "reload.message.no_permission");
+            sender.sendMessage("§cI'm sorry, but you do not have permission to perform this command. Please contact the server administrators if you believe that this is in error.§r");
             return true;
         }
 
