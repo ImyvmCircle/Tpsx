@@ -1,3 +1,8 @@
+usage: |
+  §a/<command> toggle bar§r - show TPS information in action bar
+  §a/<command> toggle tab§r - show TPS information in tab list
+  §a/<command> toggle disable§r - close TPS show
+
 toggle:
   message:
     bar: "[Tpsx] §eswitch to the action bar mode§r"

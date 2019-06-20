@@ -57,6 +57,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         }, this);
 
         this.getCommand("tpsx").setTabCompleter(this);
+        setUsageFromConfig();
     }
 
     @Override
@@ -112,6 +113,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         }
 
         this.reloadConfig();
+        setUsageFromConfig();
         sendMessageFromConfig(sender, "reload.message.success");
 
         return true;
@@ -146,6 +148,13 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         }
         for (Player player : toRemove) {
             switchTo(player, "disable");
+        }
+    }
+
+    private void setUsageFromConfig() {
+        String usage = this.getConfig().getString("usage");
+        if (usage != null) {
+            this.getCommand("tpsx").setUsage(usage);
         }
     }
 
