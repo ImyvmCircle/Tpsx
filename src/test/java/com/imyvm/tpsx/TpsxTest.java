@@ -5,9 +5,16 @@ import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+
+import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.PluginManager;
 import sun.misc.Unsafe;
 
 import org.junit.After;
@@ -15,8 +22,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -31,14 +36,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ActionBarAPI.class, MinecraftServer.class, Bukkit.class})
+@PrepareForTest({ActionBarAPI.class, MinecraftServer.class, Bukkit.class, PluginCommand.class, Tpsx.class})
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 class TpsxTest {
     private static MinecraftServer mockedServer;
     private static Unsafe unsafe;
     private static Field serverMsptArrayField;
-    private BukkitScheduler mockedScheduler;
     private Command mockedCommand;
+    private FileConfiguration mockedConfig;
+    private Listener pluginListener;
+    private PluginCommand mockedPluginCommand;
     private Timer timer;
     private Tpsx plugin;
 
@@ -50,7 +57,6 @@ class TpsxTest {
         unsafeField.setAccessible(true);
         unsafe = (Unsafe) unsafeField.get(null);
 
-        serverMsptArrayField = null;
         for (Field field : MinecraftServer.class.getDeclaredFields()) {
             if (field.getName().equals("f")) {
                 serverMsptArrayField = field;
@@ -58,55 +64,67 @@ class TpsxTest {
             }
         }
         if (serverMsptArrayField == null) {
-            fail("Could not found server MSPT array field");
+            fail("Could not found server mspt array field");
         }
 
         mockedServer = mock(MinecraftServer.class);
-        setMsptData(mockedServer, 0);
+        setMsptData(mockedServer, 1);
     }
 
     @SuppressWarnings("deprecation")
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         PowerMockito.mockStatic(ActionBarAPI.class);
         PowerMockito.mockStatic(MinecraftServer.class);
         PowerMockito.mockStatic(Bukkit.class);
 
         setMsptData(mockedServer, 0);
 
+        BukkitScheduler mockedScheduler = mock(BukkitScheduler.class);
+        PluginManager mockedManager = mock(PluginManager.class);
+        mockedPluginCommand = PowerMockito.mock(PluginCommand.class);
         mockedCommand = mock(Command.class);
-        mockedScheduler = mock(BukkitScheduler.class);
-        timer = new Timer();
+        mockedConfig = mock(FileConfiguration.class);
+        timer = new Timer(true);
 
-        doAnswer(new Answer<Integer>() {
-            @Override
-            public Integer answer(InvocationOnMock invocation) {
-                Object[] args = invocation.getArguments();
-                Runnable runnable = (Runnable)args[1];
+        doAnswer(invocation -> pluginListener = invocation.getArgument(0))
+                .when(mockedManager).registerEvents(any(Listener.class), any(Tpsx.class));
 
-                // times 50 to convert ticks to milliseconds, and divide 10 to reduce test time
-                long delay = (long)args[2] * 50 / 10;
-                long period = (long)args[3] * 50 / 10;
+        doAnswer(invocation -> {
+            Runnable runnable = (Runnable)invocation.getArgument(1);
 
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        runnable.run();
-                    }
-                }, delay, period);
+            // times 50 to convert ticks to milliseconds, and divide 10 to reduce test time
+            long delay = (long)invocation.getArgument(2) * 50 / 10;
+            long period = (long)invocation.getArgument(3) * 50 / 10;
 
-                return 0;
-            }
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    runnable.run();
+                }
+            }, delay, period);
+
+            return 0;
         }).when(mockedScheduler).scheduleSyncRepeatingTask(any(Tpsx.class), any(Runnable.class), anyLong(), anyLong());
 
         when(Bukkit.getScheduler()).thenReturn(mockedScheduler);
+        when(Bukkit.getPluginManager()).thenReturn(mockedManager);
         when(MinecraftServer.getServer()).thenReturn(mockedServer);
         when(mockedCommand.getName()).thenReturn("tpsx");
+        when(mockedConfig.getString(anyString())).thenReturn(null);
 
-        plugin = mock(Tpsx.class);
+        plugin = PowerMockito.mock(Tpsx.class);
         doCallRealMethod().when(plugin).onEnable();
         doCallRealMethod().when(plugin).sendTpsInfo();
         doCallRealMethod().when(plugin).onCommand(anyObject(), anyObject(), anyString(), anyObject());
+        setObjectField(Tpsx.class, plugin, "barPlayers", new HashMap<>());
+        setObjectField(Tpsx.class, plugin, "tabPlayers", new HashMap<>());
+        when(plugin.getCommand(eq("tpsx"))).thenReturn(mockedPluginCommand);
+        when(plugin.getConfig()).thenReturn(mockedConfig);
+        PowerMockito.doCallRealMethod().when(plugin, "subCommandToggle", any(), anyString());
+        PowerMockito.doCallRealMethod().when(plugin, "switchTo", any(), anyString());
+        PowerMockito.doCallRealMethod().when(plugin, "getTpsInfo");
+        PowerMockito.doNothing().when(plugin, "setPlayerListFooter", any(), anyString());
 
         plugin.onEnable();
     }
@@ -117,7 +135,21 @@ class TpsxTest {
         plugin.onDisable();
     }
 
-    static void setMsptData(MinecraftServer server, long mspt) {
+    private static void setObjectField(Class cls, Object object, String fieldName, Object value) {
+        Field targetField = null;
+        for (Field field : cls.getDeclaredFields()) {
+            if (field.getName().equals(fieldName)) {
+                targetField = field;
+                break;
+            }
+        }
+        if (targetField == null) {
+            fail("No such field \"" + fieldName + "\"");
+        }
+        unsafe.putObject(object, unsafe.objectFieldOffset(targetField), value);
+    }
+
+    private static void setMsptData(MinecraftServer server, long mspt) {
         long[] array = new long[100];
         for (int i = 0; i < array.length; i++) {
             array[i] = mspt * 1000000;
@@ -131,13 +163,12 @@ class TpsxTest {
 
     @Test
     public void testMainFunction() {
-        Player mockedPlayer = mock(Player.class);
+        Player mockedPlayer = mock(CraftPlayer.class);
         when(mockedPlayer.getUniqueId()).thenReturn(new UUID(1, 1));
 
         setMsptData(mockedServer, 10);
 
-        assertTrue(plugin.onCommand(mockedPlayer, mockedCommand, "", new String[0]));
-        verify(mockedPlayer, times(1)).sendMessage(eq("tpsx on"));
+        assertTrue(plugin.onCommand(mockedPlayer, mockedCommand, "", new String[] { "toggle", "bar" }));
 
         PowerMockito.verifyStatic(ActionBarAPI.class, timeout(1200 / 10).atLeast(1));
         ActionBarAPI.sendActionBar(eq(mockedPlayer), argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 10.00")));
@@ -150,16 +181,16 @@ class TpsxTest {
             method.setAccessible(true);
 
             setMsptData(mockedServer, 10);
-            assertEquals(method.invoke(plugin), "TPS: §a20.00§r, MSPT: §a10.00§r");
+            assertEquals(removeColorCode((String)method.invoke(plugin)), "TPS: 20.00, MSPT: 10.00");
 
             setMsptData(mockedServer, 45);
-            assertEquals(method.invoke(plugin), "TPS: §a20.00§r, MSPT: §e45.00§r");
+            assertEquals(removeColorCode((String)method.invoke(plugin)), "TPS: 20.00, MSPT: 45.00");
 
             setMsptData(mockedServer, 55);
-            assertEquals(method.invoke(plugin), "TPS: §c18.18§r, MSPT: §e55.00§r");
+            assertEquals(removeColorCode((String)method.invoke(plugin)), "TPS: 18.18, MSPT: 55.00");
 
             setMsptData(mockedServer, 80);
-            assertEquals(method.invoke(plugin), "TPS: §c12.50§r, MSPT: §c80.00§r");
+            assertEquals(removeColorCode((String)method.invoke(plugin)), "TPS: 12.50, MSPT: 80.00");
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -174,25 +205,5 @@ class TpsxTest {
         setMsptData(mockedServer, 10);
         plugin.onCommand(mockedSender, mockedCommand, "", new String[0]);
         verify(mockedSender, times(1)).sendMessage(argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 10.00")));
-    }
-
-    @Test
-    public void testTurnOffTpsInfo() {
-        Player mockedPlayer = mock(Player.class);
-        when(mockedPlayer.getUniqueId()).thenReturn(new UUID(2, 2));
-
-        setMsptData(mockedServer, 10);
-
-        plugin.onCommand(mockedPlayer, mockedCommand, "", new String[0]);
-        verify(mockedPlayer, times(1)).sendMessage(eq("tpsx on"));
-
-        PowerMockito.verifyStatic(ActionBarAPI.class, timeout(1200 / 10).atLeast(1));
-        ActionBarAPI.sendActionBar(eq(mockedPlayer), argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 10.00")));
-
-        plugin.onCommand(mockedPlayer, mockedCommand, "", new String[0]);
-        verify(mockedPlayer, times(1)).sendMessage(eq("tpsx off"));
-        setMsptData(mockedServer, 20);
-        PowerMockito.verifyStatic(ActionBarAPI.class, after(2400 / 10).never());
-        ActionBarAPI.sendActionBar(eq(mockedPlayer), argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 20.00")));
     }
 }

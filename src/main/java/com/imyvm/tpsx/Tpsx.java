@@ -63,6 +63,11 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("tpsx")) {
+            if (!(sender instanceof Player) && args.length == 0) {
+                sender.sendMessage(getTpsInfo());
+                return true;
+            }
+
             if (args.length == 2 && args[0].equals("toggle")) {
                 return subCommandToggle(sender, args[1]);
             }
@@ -162,7 +167,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         return origin.stream().filter(str -> str.startsWith(prefix)).collect(Collectors.toList());
     }
 
-    private static void setPlayerListFooter(Player player, String footer) {
+    private void setPlayerListFooter(Player player, String footer) {
         CraftPlayer craftPlayer = (CraftPlayer) player;
         PlayerConnection connection = craftPlayer.getHandle().playerConnection;
 
