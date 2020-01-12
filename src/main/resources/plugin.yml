@@ -1,6 +1,6 @@
 name: tps
 main: com.imyvm.tpsx.Tpsx
-version: 0.2.0-SNAPSHOT
+version: 0.2.0
 description: Get server TPS and MSPT
 author: YanWQmonad
 
