@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import sun.misc.Unsafe;
@@ -28,7 +28,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.connorlinfoot.actionbarapi.ActionBarAPI;
-import net.minecraft.server.v1_14_R1.MinecraftServer;
+import net.minecraft.server.v1_15_R1.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

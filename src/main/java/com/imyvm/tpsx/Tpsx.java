@@ -17,18 +17,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.minecraft.server.v1_14_R1.IChatBaseComponent;
-import net.minecraft.server.v1_14_R1.MathHelper;
-import net.minecraft.server.v1_14_R1.MinecraftServer;
-import net.minecraft.server.v1_14_R1.PacketPlayOutPlayerListHeaderFooter;
-import net.minecraft.server.v1_14_R1.PlayerConnection;
+import net.minecraft.server.v1_15_R1.IChatBaseComponent;
+import net.minecraft.server.v1_15_R1.MathHelper;
+import net.minecraft.server.v1_15_R1.MinecraftServer;
+import net.minecraft.server.v1_15_R1.PacketPlayOutPlayerListHeaderFooter;
+import net.minecraft.server.v1_15_R1.PlayerConnection;
 
 public class Tpsx extends JavaPlugin implements TabExecutor {
     private static List<String> allowToggle = Arrays.asList("bar", "tab", "disable");
