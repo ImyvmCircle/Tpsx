@@ -180,17 +180,17 @@ class TpsxTest {
             Method method = Tpsx.class.getDeclaredMethod("getTpsInfo");
             method.setAccessible(true);
 
-            setMsptData(mockedServer, 10);
-            assertEquals(removeColorCode((String)method.invoke(plugin)), "TPS: 20.00, MSPT: 10.00");
+	    setMsptData(mockedServer, 10);
+            assertEquals(method.invoke(plugin), "TPS: §a20.00§r, MSPT: §a10.00§r");
 
             setMsptData(mockedServer, 45);
-            assertEquals(removeColorCode((String)method.invoke(plugin)), "TPS: 20.00, MSPT: 45.00");
+            assertEquals(method.invoke(plugin), "TPS: §a20.00§r, MSPT: §e45.00§r");
 
             setMsptData(mockedServer, 55);
-            assertEquals(removeColorCode((String)method.invoke(plugin)), "TPS: 18.18, MSPT: 55.00");
+            assertEquals(method.invoke(plugin), "TPS: §c18.18§r, MSPT: §e55.00§r");
 
             setMsptData(mockedServer, 80);
-            assertEquals(removeColorCode((String)method.invoke(plugin)), "TPS: 12.50, MSPT: 80.00");
+            assertEquals(method.invoke(plugin), "TPS: §c12.50§r, MSPT: §c80.00§r");
         }
         catch (Exception e) {
             e.printStackTrace();
