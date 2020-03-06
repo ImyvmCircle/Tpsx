@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -39,6 +40,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 @PrepareForTest({ActionBarAPI.class, MinecraftServer.class, Bukkit.class, PluginCommand.class, Tpsx.class})
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 class TpsxTest {
+    // regex copied from MiniHUD
+    private static final Pattern PATTERN_CARPET_TPS = Pattern.compile("TPS: (?<tps>[0-9]+[\\.,][0-9]) MSPT: (?<mspt>[0-9]+[\\.,][0-9])");
+
     private static MinecraftServer mockedServer;
     private static Unsafe unsafe;
     private static Field serverMsptArrayField;
@@ -171,7 +175,7 @@ class TpsxTest {
         assertTrue(plugin.onCommand(mockedPlayer, mockedCommand, "", new String[] { "toggle", "bar" }));
 
         PowerMockito.verifyStatic(ActionBarAPI.class, timeout(1200 / 10).atLeast(1));
-        ActionBarAPI.sendActionBar(eq(mockedPlayer), argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 10.00")));
+        ActionBarAPI.sendActionBar(eq(mockedPlayer), argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.0 MSPT: 10.0")));
     }
 
     @Test
@@ -181,16 +185,16 @@ class TpsxTest {
             method.setAccessible(true);
 
 	    setMsptData(mockedServer, 10);
-            assertEquals(method.invoke(plugin), "TPS: §a20.00§r, MSPT: §a10.00§r");
+            assertEquals(method.invoke(plugin), "TPS: §a20.0§r MSPT: §a10.0§r");
 
             setMsptData(mockedServer, 45);
-            assertEquals(method.invoke(plugin), "TPS: §a20.00§r, MSPT: §e45.00§r");
+            assertEquals(method.invoke(plugin), "TPS: §a20.0§r MSPT: §e45.0§r");
 
             setMsptData(mockedServer, 55);
-            assertEquals(method.invoke(plugin), "TPS: §c18.18§r, MSPT: §e55.00§r");
+            assertEquals(method.invoke(plugin), "TPS: §c18.2§r MSPT: §e55.0§r");
 
             setMsptData(mockedServer, 80);
-            assertEquals(method.invoke(plugin), "TPS: §c12.50§r, MSPT: §c80.00§r");
+            assertEquals(method.invoke(plugin), "TPS: §c12.5§r MSPT: §c80.0§r");
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -204,6 +208,23 @@ class TpsxTest {
 
         setMsptData(mockedServer, 10);
         plugin.onCommand(mockedSender, mockedCommand, "", new String[0]);
-        verify(mockedSender, times(1)).sendMessage(argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.00, MSPT: 10.00")));
+        verify(mockedSender, times(1)).sendMessage(argThat((String msg) -> removeColorCode(msg).equals("TPS: 20.0 MSPT: 10.0")));
+    }
+
+    @Test
+    public void testCarpetFormattedTps() {
+        try {
+            Method method = Tpsx.class.getDeclaredMethod("getTpsInfo");
+            method.setAccessible(true);
+
+            setMsptData(mockedServer, 10);
+
+            String text = removeColorCode((String)method.invoke(plugin));
+            assertTrue(PATTERN_CARPET_TPS.matcher(text).matches());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Fail with an exception");
+        }
     }
 }

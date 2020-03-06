@@ -34,7 +34,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
     private static List<String> allowToggle = Arrays.asList("bar", "tab", "disable");
     @SuppressWarnings("deprecation")
     private static MinecraftServer server = MinecraftServer.getServer();
-    private static NumberFormat formatter = new DecimalFormat("#0.00");
+    private static NumberFormat formatter = new DecimalFormat("#0.0");
     private Map<UUID, Player> barPlayers = new HashMap<>();
     private Map<UUID, Player> tabPlayers = new HashMap<>();
 
@@ -201,6 +201,6 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         String mspt_color = mspt <= 40 ? "§a" : (mspt >= 60 ? "§c" : "§e");
         String tps_color = tps < 20 ? "§c" : "§a";
 
-        return ("TPS: " + tps_color + formatter.format(tps) + "§r, MSPT: " + mspt_color + formatter.format(mspt) + "§r");
+        return ("TPS: " + tps_color + formatter.format(tps) + "§r MSPT: " + mspt_color + formatter.format(mspt) + "§r");
     }
 }
