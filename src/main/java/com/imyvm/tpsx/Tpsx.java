@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,22 +32,17 @@ import net.minecraft.server.v1_16_R1.PacketPlayOutPlayerListHeaderFooter;
 import net.minecraft.server.v1_16_R1.PlayerConnection;
 
 public class Tpsx extends JavaPlugin implements TabExecutor {
-    private static List<String> allowToggle = Arrays.asList("bar", "tab", "disable");
+    private static final List<String> allowToggle = Arrays.asList("bar", "tab", "disable");
     @SuppressWarnings("deprecation")
-    private static MinecraftServer server = MinecraftServer.getServer();
-    private static NumberFormat formatter = new DecimalFormat("#0.0");
+    private static final MinecraftServer server = MinecraftServer.getServer();
+    private static final NumberFormat formatter = new DecimalFormat("#0.0");
     private Map<UUID, Player> barPlayers = new HashMap<>();
     private Map<UUID, Player> tabPlayers = new HashMap<>();
 
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-        	@Override
-        	public void run() {
-        		sendTpsInfo();
-        	}
-        }, 0, 20);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, this::sendTpsInfo, 0, 20);
 
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler
@@ -85,7 +81,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         List<String> result = new ArrayList<>();
 
         if (args.length == 1) {
-            result.addAll(filterStartsWith(Arrays.asList("toggle"), args[0]));
+            result.addAll(filterStartsWith(Collections.singletonList("toggle"), args[0]));
             if ((sender instanceof Player) && sender.hasPermission("tpsx.manage") && "reload".startsWith(args[0])) {
                 result.add("reload");
             }

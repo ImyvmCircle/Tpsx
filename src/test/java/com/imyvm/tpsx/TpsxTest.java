@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.Timer;
@@ -41,7 +42,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 @PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "org.w3c.dom.*"})
 class TpsxTest {
     // regex copied from MiniHUD
-    private static final Pattern PATTERN_CARPET_TPS = Pattern.compile("TPS: (?<tps>[0-9]+[\\.,][0-9]) MSPT: (?<mspt>[0-9]+[\\.,][0-9])");
+    private static final Pattern PATTERN_CARPET_TPS = Pattern.compile("TPS: (?<tps>[0-9]+[.,][0-9]) MSPT: (?<mspt>[0-9]+[.,][0-9])");
 
     private static MinecraftServer mockedServer;
     private static Unsafe unsafe;
@@ -95,7 +96,7 @@ class TpsxTest {
                 .when(mockedManager).registerEvents(any(Listener.class), any(Tpsx.class));
 
         doAnswer(invocation -> {
-            Runnable runnable = (Runnable)invocation.getArgument(1);
+            Runnable runnable = invocation.getArgument(1);
 
             // times 50 to convert ticks to milliseconds, and divide 10 to reduce test time
             long delay = (long)invocation.getArgument(2) * 50 / 10;
@@ -121,8 +122,8 @@ class TpsxTest {
         doCallRealMethod().when(plugin).onEnable();
         doCallRealMethod().when(plugin).sendTpsInfo();
         doCallRealMethod().when(plugin).onCommand(anyObject(), anyObject(), anyString(), anyObject());
-        setObjectField(Tpsx.class, plugin, "barPlayers", new HashMap<>());
-        setObjectField(Tpsx.class, plugin, "tabPlayers", new HashMap<>());
+        setObjectField(plugin, "barPlayers", new HashMap<>());
+        setObjectField(plugin, "tabPlayers", new HashMap<>());
         when(plugin.getCommand(eq("tpsx"))).thenReturn(mockedPluginCommand);
         when(plugin.getConfig()).thenReturn(mockedConfig);
         PowerMockito.doCallRealMethod().when(plugin, "subCommandToggle", any(), anyString());
@@ -139,9 +140,9 @@ class TpsxTest {
         plugin.onDisable();
     }
 
-    private static void setObjectField(Class cls, Object object, String fieldName, Object value) {
+    private static void setObjectField(Object object, String fieldName, Object value) {
         Field targetField = null;
-        for (Field field : cls.getDeclaredFields()) {
+        for (Field field : Tpsx.class.getDeclaredFields()) {
             if (field.getName().equals(fieldName)) {
                 targetField = field;
                 break;
@@ -155,9 +156,7 @@ class TpsxTest {
 
     private static void setMsptData(MinecraftServer server, long mspt) {
         long[] array = new long[100];
-        for (int i = 0; i < array.length; i++) {
-            array[i] = mspt * 1000000;
-        }
+        Arrays.fill(array, mspt * 1000000);
         unsafe.putObject(server, unsafe.objectFieldOffset(serverMsptArrayField), array);
     }
 
