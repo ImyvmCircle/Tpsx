@@ -42,7 +42,7 @@ dependencies {
 }
 
 group = 'com.imyvm'
-version = '0.2.1'
+version = '0.3.0'
 sourceCompatibility = '1.8'
 
 publishing {
