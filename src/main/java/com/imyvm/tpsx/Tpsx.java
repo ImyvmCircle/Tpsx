@@ -13,7 +13,8 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Iterables;
 
-import com.connorlinfoot.actionbarapi.ActionBarAPI;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -125,7 +126,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         tabPlayers.remove(player.getUniqueId());
 
         setPlayerListFooter(player, "");
-        ActionBarAPI.sendActionBar(player, "");
+        sendActionBar(player, "");
 
         switch (target) {
             case "bar":
@@ -185,7 +186,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         updatePermission();
 
         String msg = getTpsInfo();
-        barPlayers.values().forEach(player -> ActionBarAPI.sendActionBar(player, msg));
+        barPlayers.values().forEach(player -> sendActionBar(player, msg));
         tabPlayers.values().forEach(player -> setPlayerListFooter(player, msg));
     }
 
@@ -198,5 +199,9 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
         String tps_color = tps < 20 ? "§c" : "§a";
 
         return ("TPS: " + tps_color + formatter.format(tps) + "§r MSPT: " + mspt_color + formatter.format(mspt) + "§r");
+    }
+
+    private void sendActionBar(Player player, String msg){
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
     }
 }
