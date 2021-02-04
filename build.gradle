@@ -28,7 +28,7 @@ configurations {
 
 ext {
     minecraft_version = '1.16.5'
-    spigot_version = '1.16.5-R0.3-SNAPSHOT'
+    spigot_version = '1.16.5-R0.1-SNAPSHOT'
     powermock_version = '2.0.2'
 }
 
@@ -42,7 +42,7 @@ dependencies {
 }
 
 group = 'com.imyvm'
-version = '0.3.1'
+version = '0.3.2'
 sourceCompatibility = '1.8'
 
 publishing {
