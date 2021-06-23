@@ -14,7 +14,6 @@ import java.util.UUID;
 
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import sun.misc.Unsafe;
@@ -30,7 +29,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.connorlinfoot.actionbarapi.ActionBarAPI;
-import net.minecraft.server.v1_16_R3.MinecraftServer;
+import net.minecraft.server.MinecraftServer;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -166,7 +165,7 @@ class TpsxTest {
 
     @Test
     public void testMainFunction() {
-        Player mockedPlayer = mock(CraftPlayer.class);
+        Player mockedPlayer = mock(Player.class);
         when(mockedPlayer.getUniqueId()).thenReturn(new UUID(1, 1));
 
         setMsptData(mockedServer, 10);

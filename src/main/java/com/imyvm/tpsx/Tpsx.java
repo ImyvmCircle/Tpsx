@@ -18,21 +18,16 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabExecutor;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.minecraft.server.v1_16_R3.IChatBaseComponent;
-import net.minecraft.server.v1_16_R3.MathHelper;
-import net.minecraft.server.v1_16_R3.MinecraftServer;
-import net.minecraft.server.v1_16_R3.PacketPlayOutPlayerListHeaderFooter;
-import net.minecraft.server.v1_16_R3.PlayerConnection;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.MathHelper;
 
-public class Tpsx extends JavaPlugin implements TabExecutor {
+public class Tpsx extends JavaPlugin {
     private static final List<String> allowToggle = Arrays.asList("bar", "tab", "disable");
     @SuppressWarnings("deprecation")
     private static final MinecraftServer server = MinecraftServer.getServer();
@@ -165,15 +160,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
     }
 
     private void setPlayerListFooter(Player player, String footer) {
-        CraftPlayer craftPlayer = (CraftPlayer) player;
-        PlayerConnection connection = craftPlayer.getHandle().playerConnection;
-
-        PacketPlayOutPlayerListHeaderFooter packet = new PacketPlayOutPlayerListHeaderFooter();
-
-        packet.header = IChatBaseComponent.ChatSerializer.a("{\"text\": \"\"}");
-        packet.footer = IChatBaseComponent.ChatSerializer.a("{\"text\": \"" + footer + "\"}");
-
-        connection.sendPacket(packet);
+        player.setPlayerListFooter(footer);
     }
 
     private void sendMessageFromConfig(CommandSender sender, String path) {
@@ -191,8 +178,7 @@ public class Tpsx extends JavaPlugin implements TabExecutor {
     }
 
     private String getTpsInfo() {
-        // double mspt = MathHelper.average(server.lastTickLengths) * 1.0E-6D;
-        double mspt = MathHelper.a(server.h) * 1.0E-6D;
+        double mspt = MathHelper.a(server.n) * 1.0E-6D;
         double tps = Math.min(1000.0 / mspt, 20.0);
 
         String mspt_color = mspt <= 40 ? "§a" : (mspt >= 60 ? "§c" : "§e");

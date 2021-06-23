@@ -7,6 +7,9 @@ plugins {
     id 'maven-publish'
 }
 
+sourceCompatibility = '16'
+targetCompatibility = '16'
+
 repositories {
     mavenLocal()
     maven {
@@ -27,8 +30,7 @@ configurations {
 }
 
 ext {
-    minecraft_version = '1.16.5'
-    spigot_version = '1.16.5-R0.1-SNAPSHOT'
+    minecraft_version = '1.17'
     powermock_version = '2.0.2'
 }
 
@@ -43,7 +45,6 @@ dependencies {
 
 group = 'com.imyvm'
 version = '0.3.2'
-sourceCompatibility = '1.8'
 
 publishing {
     publications {
